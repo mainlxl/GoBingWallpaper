@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -18,8 +19,9 @@ const base_bing_url = "https://cn.bing.com"
 const DEFAULT_PATH = "./bing壁纸"
 
 type ItemImage struct {
-	Url  string `json:"url"`
-	Name string `json:"copyright"`
+	Url       string `json:"url"`
+	Name      string `json:"copyright"`
+	StartDate string `json:"startdate"`
 }
 type MetaData struct {
 	Images []ItemImage `json:"images"`
@@ -36,7 +38,15 @@ func DownloadAllData(dirPath string, data *MetaData, infoBytes *walk.TextEdit) *
 	i := 1
 	isHasDownload := false
 	for _, item := range data.Images {
-		targeetName := filepath.Join(dirPath, item.Name+".jpg")
+		build := new(strings.Builder)
+		build.WriteString(item.StartDate[:4])
+		build.WriteString("-")
+		build.WriteString(item.StartDate[4:6])
+		build.WriteString("-")
+		build.WriteString(item.StartDate[6:8])
+		build.WriteString(item.Name)
+		build.WriteString(".jpg")
+		targeetName := filepath.Join(dirPath, build.String())
 		if _, err := os.Stat(targeetName); os.IsNotExist(err) {
 			isHasDownload = true
 			wg.Add(1)

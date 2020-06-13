@@ -2,12 +2,10 @@ package main
 
 import (
 	"GoBingWallpaper/bing"
-	"encoding/json"
 	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +27,7 @@ func main() {
 			Action{
 				Text: "关于",
 				OnTriggered: func() {
-					walk.MsgBox(mw, "关于", "Bing壁纸下载器v1.0\n作者：Mainli", walk.MsgBoxIconQuestion)
+					walk.MsgBox(mw, "关于", "Bing壁纸下载器v1.0.1\n作者：Mainli", walk.MsgBoxIconQuestion)
 				},
 			},
 		},
@@ -60,7 +58,7 @@ func main() {
 			PushButton{
 				Text: "开始下载",
 				OnClicked: func() { //点击事件响应函数
-					go clickDownload()
+					go bing.ClickDownload(infoLabel)
 				},
 			},
 			TextEdit{
@@ -84,22 +82,4 @@ func main() {
 	mw.SetY((int(win.GetSystemMetrics(1)) - mw.Height()) / 2)
 	mw.Run() //运行
 }
-func clickDownload() {
-	//os.RemoveAll(bing.DEFAULT_PATH)
-	if get, err := http.Get("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=1&n=10"); err == nil {
-		body := get.Body
-		defer body.Close()
-		data := new(bing.MetaData)
-		if err := json.NewDecoder(body).Decode(data); err != nil {
-			infoLabel.AppendText("error: ")
-			infoLabel.AppendText(err.Error())
-		} else {
-			bing.FixData(data)
-			bing.EnsureDir(bing.DEFAULT_PATH)
-			infoLabel.AppendText("--------start-------------\r\n")
-			waitGroup := bing.DownloadAllData(bing.DEFAULT_PATH, data, infoLabel)
-			infoLabel.AppendText("--------end-------------\r\n")
-			waitGroup.Wait()
-		}
-	}
-}
+

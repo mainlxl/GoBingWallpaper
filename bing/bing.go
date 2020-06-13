@@ -3,6 +3,7 @@ package bing
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"github.com/lxn/walk"
 	"io"
@@ -15,7 +16,7 @@ import (
 	"sync"
 )
 
-const base_bing_url = "https://cn.bing.com"
+const base_bing_url = "https://cn.com"
 const DEFAULT_PATH = "./bing壁纸"
 
 type ItemImage struct {
@@ -98,5 +99,23 @@ func EnsureDir(path string) {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		os.MkdirAll(path, os.ModeDir)
+	}
+}
+func ClickDownload(infoLabel *walk.TextEdit) {
+	if get, err := http.Get("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=1&n=10"); err == nil {
+		body := get.Body
+		defer body.Close()
+		data := new(MetaData)
+		if err := json.NewDecoder(body).Decode(data); err != nil {
+			infoLabel.AppendText("error: ")
+			infoLabel.AppendText(err.Error())
+		} else {
+			FixData(data)
+			EnsureDir(DEFAULT_PATH)
+			infoLabel.AppendText("--------start-------------\r\n")
+			waitGroup := DownloadAllData(DEFAULT_PATH, data, infoLabel)
+			infoLabel.AppendText("--------end-------------\r\n")
+			waitGroup.Wait()
+		}
 	}
 }

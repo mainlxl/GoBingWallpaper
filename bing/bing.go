@@ -16,7 +16,7 @@ import (
 	"sync"
 )
 
-const base_bing_url = "https://cn.com"
+const base_bing_url = "https://cn.bing.com"
 const DEFAULT_PATH = "./bing壁纸"
 
 type ItemImage struct {
@@ -39,24 +39,25 @@ func DownloadAllData(dirPath string, data *MetaData, infoBytes *walk.TextEdit) *
 	i := 1
 	isHasDownload := false
 	for _, item := range data.Images {
-		build := new(strings.Builder)
-		build.WriteString(item.StartDate[:4])
-		build.WriteString("-")
-		build.WriteString(item.StartDate[4:6])
-		build.WriteString("-")
-		build.WriteString(item.StartDate[6:8])
-		build.WriteString(item.Name)
-		build.WriteString(".jpg")
-		targeetName := filepath.Join(dirPath, build.String())
-		if _, err := os.Stat(targeetName); os.IsNotExist(err) {
+		targetNameBuild := new(strings.Builder)
+		targetNameBuild.WriteString(item.StartDate[:4])
+		targetNameBuild.WriteString("-")
+		targetNameBuild.WriteString(item.StartDate[4:6])
+		targetNameBuild.WriteString("-")
+		targetNameBuild.WriteString(item.StartDate[6:8])
+		targetNameBuild.WriteString(item.Name)
+		targetNameBuild.WriteString(".jpg")
+		targeetName := targetNameBuild.String()
+		targetPath := filepath.Join(dirPath, targeetName)
+		if _, err := os.Stat(targetPath); os.IsNotExist(err) {
 			isHasDownload = true
 			wg.Add(1)
 			infoBytes.AppendText(strconv.Itoa(i))
 			i++
 			infoBytes.AppendText(". ")
-			infoBytes.AppendText(item.Name)
-			infoBytes.AppendText(".jpg\r\n")
-			go DownloadUrlFile(targeetName, item.Url, wg)
+			infoBytes.AppendText(targeetName)
+			infoBytes.AppendText("\r\n")
+			go DownloadUrlFile(targetPath, item.Url, wg)
 		}
 	}
 	if !isHasDownload {
